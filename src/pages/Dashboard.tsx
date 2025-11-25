@@ -1,9 +1,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Gift, Users, Award, QrCode, Plus, Settings } from "lucide-react";
+import { useState } from "react";
 
 const Dashboard = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [numPrizes, setNumPrizes] = useState(8);
   // Demo data
   const stats = {
     totalLeads: 127,
@@ -28,10 +35,137 @@ const Dashboard = () => {
             <h1 className="text-4xl font-bold text-foreground">Painel do Lojista</h1>
             <p className="text-muted-foreground">Gerencie suas campanhas e acompanhe resultados</p>
           </div>
-          <Button className="bg-primary hover:bg-primary/90">
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Campanha
-          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-primary hover:bg-primary/90">
+                <Plus className="w-4 h-4 mr-2" />
+                Nova Campanha
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Criar Nova Campanha</DialogTitle>
+                <DialogDescription>
+                  Configure os prêmios e detalhes da sua campanha de roleta
+                </DialogDescription>
+              </DialogHeader>
+              
+              <form className="space-y-6 mt-4">
+                {/* Informações Básicas */}
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="campaign-name">Nome da Campanha</Label>
+                    <Input 
+                      id="campaign-name" 
+                      placeholder="Ex: Promoção de Verão 2024"
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="num-prizes">Número de Prêmios (2-10)</Label>
+                    <Input 
+                      id="num-prizes" 
+                      type="number"
+                      min="2"
+                      max="10"
+                      value={numPrizes}
+                      onChange={(e) => setNumPrizes(parseInt(e.target.value) || 8)}
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="validity">Validade dos Prêmios (dias)</Label>
+                    <Input 
+                      id="validity" 
+                      type="number"
+                      placeholder="Ex: 30"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+
+                {/* Prêmios */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Configurar Prêmios</h3>
+                  {Array.from({ length: numPrizes }).map((_, index) => (
+                    <Card key={index}>
+                      <CardHeader>
+                        <CardTitle className="text-base">Prêmio {index + 1}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div>
+                          <Label htmlFor={`prize-name-${index}`}>Nome do Prêmio</Label>
+                          <Input 
+                            id={`prize-name-${index}`}
+                            placeholder="Ex: 10% OFF"
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`prize-desc-${index}`}>Descrição</Label>
+                          <Input 
+                            id={`prize-desc-${index}`}
+                            placeholder="Ex: Desconto em qualquer produto"
+                            className="mt-1"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label htmlFor={`prize-qty-${index}`}>Quantidade</Label>
+                            <Input 
+                              id={`prize-qty-${index}`}
+                              type="number"
+                              placeholder="Ex: 50"
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor={`prize-prob-${index}`}>Probabilidade (%)</Label>
+                            <Input 
+                              id={`prize-prob-${index}`}
+                              type="number"
+                              placeholder="Ex: 20"
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Mensagem WhatsApp */}
+                <div>
+                  <Label htmlFor="whatsapp-message">Mensagem do WhatsApp</Label>
+                  <Textarea 
+                    id="whatsapp-message"
+                    placeholder="Parabéns! Você ganhou {premio}! 🎉&#10;Válido até {validade}&#10;Apresente esta mensagem na loja."
+                    rows={4}
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Use {`{premio}`} e {`{validade}`} para personalizar
+                  </p>
+                </div>
+
+                {/* Botões */}
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button type="submit" className="bg-primary hover:bg-primary/90">
+                    Criar Campanha
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Stats */}
