@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Gift, MessageCircle, Sparkles } from "lucide-react";
+import { Gift, MessageCircle, Sparkles, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 const Results = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
+  const [userPhone, setUserPhone] = useState("");
   const [prize, setPrize] = useState<any>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSent, setIsSent] = useState(false);
 
   useEffect(() => {
-    // Get user data and prize from session storage
     const name = sessionStorage.getItem("userName");
+    const phone = sessionStorage.getItem("userPhone");
     const wonPrize = sessionStorage.getItem("wonPrize");
 
     if (!name || !wonPrize) {
@@ -20,16 +25,45 @@ const Results = () => {
     }
 
     setUserName(name);
+    setUserPhone(phone || "");
     setPrize(JSON.parse(wonPrize));
     setShowConfetti(true);
 
-    // Hide confetti after animation
     setTimeout(() => setShowConfetti(false), 3000);
   }, [navigate]);
 
-  const handleWhatsApp = () => {
-    // In production, this would trigger the n8n webhook
-    alert("Em produção, o prêmio seria enviado automaticamente pelo WhatsApp!");
+  const handleWhatsApp = async () => {
+    if (isLoading || isSent) return;
+    
+    setIsLoading(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('send-prize-webhook', {
+        body: {
+          nome: userName,
+          telefone: userPhone,
+          premio: prize.name,
+          premio_id: prize.id,
+        },
+      });
+
+      if (error) throw error;
+
+      setIsSent(true);
+      toast({
+        title: "Prêmio enviado! 🎉",
+        description: "Verifique seu WhatsApp para receber seu prêmio.",
+      });
+    } catch (error) {
+      console.error('Erro ao enviar prêmio:', error);
+      toast({
+        title: "Erro ao enviar",
+        description: "Tente novamente em alguns instantes.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!prize) return null;

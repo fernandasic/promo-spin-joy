@@ -1,1 +1,4 @@
 project_id = "jmmiuvroxzjzaesaessi"
+
+[functions.send-prize-webhook]
+verify_jwt = false
